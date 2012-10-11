@@ -26,6 +26,7 @@ RELEASES_PATH=<%= configuration[:releases_path] %>      # e.g. /u/apps/myapp/rel
 RELEASE_PATH=<%= configuration[:release_path] %>        # e.g. /u/apps/myapp/releases/20120428210958
 SHARED_PATH=<%= configuration[:shared_path] %>          # e.g. /u/apps/myapp/shared
 CURRENT_PATH=<%= configuration[:current_path] %>        # e.g. /u/apps/myapp/current
+APPLICATION=<%= configuration[:application] %>
 
 PACKAGE_NAME=<%= File.basename(filename) %>             # e.g. 20120428210958.tar.gz
 S3_PACKAGE_PATH=${RAILS_ENV}/${PACKAGE_NAME}            # e.g. production/20120428210958.tar.gz
@@ -49,7 +50,7 @@ chmod -R g+w ${DEPLOY_TO}
 # mkdir -p ${SHARED_PATH}/uploads
 
 # cap deploy:update_code
-s3cmd get ${AWS_RELEASES_BUCKET}:${S3_PACKAGE_PATH} ${DOWNLOADED_PACKAGE_PATH} 2>&1
+s3cmd get s3://${AWS_RELEASES_BUCKET}/${S3_PACKAGE_PATH} ${DOWNLOADED_PACKAGE_PATH} 2>&1
 cd ${RELEASES_PATH} && ${DECOMPRESS_CMD} && rm ${DOWNLOADED_PACKAGE_PATH}
 
 # cap deploy:assets_symlink   (Rails 3.x specific)
@@ -78,6 +79,9 @@ bundle install --gemfile ${RELEASE_PATH}/Gemfile --path ${SHARED_PATH}/bundle --
 cd ${RELEASE_PATH}
 bundle exec rake RAILS_ENV=${RAILS_ENV} RAILS_GROUPS=assets assets:precompile
 
+# TODO: DB MIGRATE?
+#
+#
 # Project specific shared symlinking
 #ln -nfs ${SHARED_PATH}/content ${RELEASE_PATH}/public/content
 #ln -nfs ${SHARED_PATH}/uploads ${RELEASE_PATH}/public/uploads
@@ -86,8 +90,12 @@ bundle exec rake RAILS_ENV=${RAILS_ENV} RAILS_GROUPS=assets assets:precompile
 rm -f ${CURRENT_PATH}
 ln -s ${RELEASE_PATH} ${CURRENT_PATH}
 
-# cap deploy:restart
-# touch ${CURRENT_PATH}/tmp/restart.txt
+# Generate initd scripts
+bundle exec foreman export initscript /tmp -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l ${SHARED_PATH}/log
+mv /tmp/${APPLICATION} /etc/init.d
+chmod +x /etc/init.d/${APPLICATION}
+chkconfig ${APPLICATION} on
 
-# AFTER: cap deploy:restart
-# cd ${CURRENT_PATH};RAILS_ENV=${RAILS_ENV} script/delayed_job restart
+# Go
+/etc/init.d/${APPLICATION} restart
+
