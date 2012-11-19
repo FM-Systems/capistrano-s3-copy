@@ -59,7 +59,7 @@ module Capistrano
           File.open(local_output_file, "w") do  |f|
             f.write(output)
           end
-          configuration[:s3_copy_aws_install_cmd] = "#{aws_environment} s3cmd put #{local_output_file} s3://#{bucket_name}/#{rails_env}/aws_install.sh"
+          configuration[:s3_copy_aws_install_cmd] = "#{aws_environment} s3cmd put #{local_output_file} s3://#{bucket_name}/#{rails_env}/aws_install.sh 2>&1"
         end
 
         def binding
