@@ -50,7 +50,7 @@ chmod -R g+w ${DEPLOY_TO}
 # mkdir -p ${SHARED_PATH}/uploads
 
 # cap deploy:update_code
-s3cmd get s3:\/\/${AWS_RELEASES_BUCKET}/${S3_PACKAGE_PATH} ${DOWNLOADED_PACKAGE_PATH} 2>&1
+s3cmd get s3:\/\/${AWS_RELEASES_BUCKET}/${S3_PACKAGE_PATH} ${DOWNLOADED_PACKAGE_PATH}
 cd ${RELEASES_PATH} && ${DECOMPRESS_CMD} && rm ${DOWNLOADED_PACKAGE_PATH}
 
 # cap deploy:assets_symlink   (Rails 3.x specific)
@@ -77,7 +77,7 @@ bundle install --gemfile ${RELEASE_PATH}/Gemfile --path ${SHARED_PATH}/bundle --
 # AFTER: cap deploy:update_code
 # cap deploy:assets:precompile
 cd ${RELEASE_PATH}
-bundle exec rake RAILS_ENV=${RAILS_ENV} RAILS_GROUPS=assets assets:precompile
+#bundle exec rake RAILS_ENV=${RAILS_ENV} RAILS_GROUPS=assets assets:precompile
 
 # TODO: DB MIGRATE?
 #
