@@ -21,6 +21,7 @@ fi
 AWS_RELEASES_BUCKET=<%= configuration[:aws_releases_bucket] %>
 
 RAILS_ENV=<%= configuration[:rails_env] %>              # e.g. production
+APP_ENV=<%= configuration[:app_env] %>
 DEPLOY_TO=<%= configuration[:deploy_to] %>              # e.g. /u/apps/myapp
 RELEASES_PATH=<%= configuration[:releases_path] %>      # e.g. /u/apps/myapp/releases
 RELEASE_PATH=<%= configuration[:release_path] %>        # e.g. /u/apps/myapp/releases/20120428210958
@@ -29,7 +30,7 @@ CURRENT_PATH=<%= configuration[:current_path] %>        # e.g. /u/apps/myapp/cur
 APPLICATION=<%= configuration[:application] %>
 
 PACKAGE_NAME=<%= File.basename(filename) %>             # e.g. 20120428210958.tar.gz
-S3_PACKAGE_PATH=${RAILS_ENV}/${PACKAGE_NAME}            # e.g. production/20120428210958.tar.gz
+S3_PACKAGE_PATH=${APP_ENV}/${PACKAGE_NAME}            # e.g. production/20120428210958.tar.gz
 DOWNLOADED_PACKAGE_PATH=<%= remote_filename %>          # e.g. /tmp/20120428210958.tar.gz
 DECOMPRESS_CMD="<%= decompress(remote_filename).join(" ") %>" # e.g. tar xfz /tmp/20120428210958.tar.gz
 
