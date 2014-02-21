@@ -106,4 +106,3 @@ bundle exec foreman export upstart ./tmp/foreman -t config/upstart -e ./tmp/env 
 # Go
 <%#/etc/init.d/${APPLICATION} restart%>
 sudo start ${APPLICATION} || sudo restart ${APPLICATION}
-sudo service unicorn start || sudo service unicorn restart
