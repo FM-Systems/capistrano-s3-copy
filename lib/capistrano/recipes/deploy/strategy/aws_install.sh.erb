@@ -94,17 +94,12 @@ ln -s ${RELEASE_PATH} ${CURRENT_PATH}
 
 cp /etc/default/app ${RELEASE_PATH}/.env
 
-mkdir -p tmp/foreman
-bundle exec foreman export upstart ./tmp/foreman -t config/upstart -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l /opt/app/${APPLICATION}/shared/log
-sudo mv tmp/foreman/* /etc/init
-rm -rf tmp/foreman
+mkdir -p tmp/foreman && bundle exec foreman export upstart ./tmp/foreman -t config/upstart -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l /opt/app/${APPLICATION}/shared/log && sudo mv tmp/foreman/* /etc/init && rm -rf tmp/foreman
 # Generate initd scripts
 <%#bundle exec foreman export initscript /tmp -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l ${SHARED_PATH}/log%>
 <%#mv /tmp/${APPLICATION} /etc/init.d%>
 <%#chmod +x /etc/init.d/${APPLICATION}%>
 <%#chkconfig ${APPLICATION} on%>
-
-
 
 # Go
 <%#/etc/init.d/${APPLICATION} restart%>
