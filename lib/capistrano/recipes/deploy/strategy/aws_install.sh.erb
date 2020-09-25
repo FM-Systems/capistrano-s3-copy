@@ -9,13 +9,13 @@ echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
 echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
 
 if [ "${AWS_ACCESS_KEY_ID}" == "" ]; then
-  echo "Expecting the environment variable AWS_ACCESS_KEY_ID to be set"
-  exit 1
+echo "Expecting the environment variable AWS_ACCESS_KEY_ID to be set"
+exit 1
 fi
 
 if [ "${AWS_SECRET_ACCESS_KEY}" == "" ]; then
-  echo "Expecting the environment variable AWS_SECRET_ACCESS_KEY to be set"
-  exit 2
+echo "Expecting the environment variable AWS_SECRET_ACCESS_KEY to be set"
+exit 2
 fi
 
 AWS_RELEASES_BUCKET=<%= configuration[:aws_releases_bucket] %>
@@ -73,7 +73,10 @@ ln -s ${SHARED_PATH}/pids ${RELEASE_PATH}/tmp/pids
 
 # AFTER: cap deploy:finalize_update
 cd ${RELEASE_PATH}
-bundle install --gemfile ${RELEASE_PATH}/Gemfile --path ${SHARED_PATH}/bundle --deployment --quiet --without development test
+bundle config set deployment "true"
+bundle config set path "${SHARED_PATH}/bundle"
+bundle config set without "development test"
+bundle install --gemfile ${RELEASE_PATH}/Gemfile --quiet
 
 # AFTER: cap deploy:update_code
 # cap deploy:assets:precompile
@@ -94,7 +97,7 @@ ln -s ${RELEASE_PATH} ${CURRENT_PATH}
 
 cp /etc/default/app ${RELEASE_PATH}/.env
 
-mkdir -p tmp/foreman && bundle exec foreman export upstart ./tmp/foreman -t config/upstart -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l /opt/app/${APPLICATION}/shared/log && sudo mv tmp/foreman/* /etc/init && rm -rf tmp/foreman
+mkdir -p tmp/foreman && bundle exec foreman export systemd ./tmp/foreman -t config/systemd -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l /opt/app/${APPLICATION}/shared/log && sudo cp -a tmp/foreman/* /etc/systemd/system && rm -rf tmp/foreman
 # Generate initd scripts
 <%#bundle exec foreman export initscript /tmp -e /etc/default/app -f ./Procfile.production -a ${APPLICATION} -u deployer -l ${SHARED_PATH}/log%>
 <%#mv /tmp/${APPLICATION} /etc/init.d%>
@@ -103,4 +106,6 @@ mkdir -p tmp/foreman && bundle exec foreman export upstart ./tmp/foreman -t conf
 
 # Go
 <%#/etc/init.d/${APPLICATION} restart%>
-sudo start ${APPLICATION} || sudo restart ${APPLICATION}
+sudo systemctl daemon-reload
+sudo systemctl enable ${APPLICATION}.target
+sudo systemctl start ${APPLICATION}.target || sudo systemctl restart ${APPLICATION}.target

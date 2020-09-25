@@ -51,11 +51,13 @@ module Capistrano
 
         def build_aws_install_script
           template_text = configuration[:aws_install_script]
+          template_text = File.read(File.join(File.dirname(__FILE__), "aws_install.sh.erb")) if template_text.nil?
+          template_text = template_text.gsub("\r\n?", "\n")
+
           puts "TEMPLATE TEXT------------------------------------"
           puts template_text
           puts "------------------------------------"
-          template_text = File.read(File.join(File.dirname(__FILE__), "aws_install.sh.erb")) if template_text.nil?
-          template_text = template_text.gsub("\r\n?", "\n")
+
           template = ERB.new(template_text, nil, '<>-')
           output = template.result(self.binding)
           local_output_file = File.join(copy_dir, "aws_install.sh")
