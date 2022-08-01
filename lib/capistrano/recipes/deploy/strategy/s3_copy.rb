@@ -44,6 +44,8 @@ module Capistrano
 
           run "#{aws_environment} s3cmd get s3://#{bucket_name}/#{app_env}/#{package_name} #{remote_filename} 2>&1"
           run "cd #{configuration[:releases_path]} && #{decompress(remote_filename).join(" ")} && rm #{remote_filename}"
+          # set bundle options since these are deprecated bundler parameters - monkey patch to allow cap2 to work while we transition to cap3
+          run "cd #{configuration[:release_path]} && bundle config set deployment 'true' && bundle config set path '#{configuration[:shared_path]}/bundle' && bundle config set without 'development test'"
           logger.debug "done!"
 
           build_aws_install_script
@@ -53,12 +55,7 @@ module Capistrano
           template_text = configuration[:aws_install_script]
           template_text = File.read(File.join(File.dirname(__FILE__), "aws_install.sh.erb")) if template_text.nil?
           template_text = template_text.gsub("\r\n?", "\n")
-
-          puts "TEMPLATE TEXT------------------------------------"
-          puts template_text
-          puts "------------------------------------"
-
-          template = ERB.new(template_text, nil, '<>-')
+          template = ERB.new(template_text, trim_mode: '<>-')
           output = template.result(self.binding)
           local_output_file = File.join(copy_dir, "aws_install.sh")
           File.open(local_output_file, "w") do  |f|
